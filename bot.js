@@ -108,7 +108,47 @@ ${lista}
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (message.content === '!elite') {
-    await message.reply(getEliteMessage());
+    // Deleta o comando !elite
+    await message.delete();
+
+    // Procura por mensagens fixadas da Elite
+    const pinnedMessages = await message.channel.messages.fetchPinned();
+    const existingEliteMessage = pinnedMessages.find(m => 
+      m.author.id === client.user.id && 
+      m.embeds.length > 0 && 
+      m.embeds[0].title === '🔱 ELITE TEAM'
+    );
+
+    if (existingEliteMessage) {
+      // Se já existe uma mensagem fixada da Elite, apenas atualiza
+      await existingEliteMessage.edit(getEliteMessage());
+      await message.channel.send({ 
+        content: '✨ A mensagem da Elite já está fixada no canal!', 
+        ephemeral: true 
+      }).then(msg => {
+        setTimeout(() => msg.delete(), 5000); // Deleta após 5 segundos
+      });
+    } else {
+      // Se não existe, cria uma nova e fixa
+      const eliteMessage = await message.channel.send(getEliteMessage());
+      try {
+        await eliteMessage.pin();
+        await message.channel.send({ 
+          content: '📌 Mensagem da Elite foi fixada no canal!', 
+          ephemeral: true 
+        }).then(msg => {
+          setTimeout(() => msg.delete(), 5000); // Deleta após 5 segundos
+        });
+      } catch (error) {
+        console.error('Não foi possível fixar a mensagem:', error);
+        await message.channel.send({ 
+          content: '⚠️ Não foi possível fixar a mensagem. Verifique as permissões do bot.', 
+          ephemeral: true 
+        }).then(msg => {
+          setTimeout(() => msg.delete(), 5000); // Deleta após 5 segundos
+        });
+      }
+    }
   }
 });
 
