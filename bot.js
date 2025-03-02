@@ -38,12 +38,20 @@ client.on('messageCreate', async (message) => {
       : '*Nenhum participante na Elite*';
 
     await message.reply({
-      content: `**ELITE**\n👑 Responsável: ${eliteResponsavel}\n\n**Participantes:**\n${lista}`,
+      content: `
+🔱 **[ ELITE TEAM ]** 🔱
+
+👑 **Responsável:** ${eliteResponsavel}
+
+📋 **Participantes:**
+${lista}
+
+━━━━━━━━━━━━━━━━━━━━━`,
       components: [
         new ActionRowBuilder().addComponents(
           new ButtonBuilder()
             .setCustomId('participarElite')
-            .setLabel('Entrar na Elite')
+            .setLabel('⭐ Entrar na Elite')
             .setStyle(ButtonStyle.Primary)
         )
       ]
@@ -77,11 +85,25 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const senha = interaction.fields.getTextInputValue('senhaInput');
     if (senha === eliteSenha) {
       if (!elite.find(u => u.id === interaction.user.id)) {
-        elite.push({ id: interaction.user.id });
+        elite.push({ 
+          id: interaction.user.id,
+          joinedAt: new Date().toLocaleDateString('pt-BR')
+        });
+        await interaction.reply({ 
+          content: `🌟 **Bem-vindo(a) à Elite, <@${interaction.user.id}>!**\n\nVocê agora faz parte do nosso time exclusivo.`, 
+          ephemeral: true 
+        });
+      } else {
+        await interaction.reply({ 
+          content: '❌ Você já é membro da Elite!', 
+          ephemeral: true 
+        });
       }
-      await interaction.reply({ content: 'Bem-vindo(a) à Elite!', ephemeral: true });
     } else {
-      await interaction.reply({ content: 'Senha incorreta!', ephemeral: true });
+      await interaction.reply({ 
+        content: '❌ Senha incorreta! Tente novamente.', 
+        ephemeral: true 
+      });
     }
   }
 });
