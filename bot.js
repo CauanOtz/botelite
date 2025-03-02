@@ -29,16 +29,21 @@ client.on('ready', () => {
     console.log('Bot está funcionando autenticado e pronto para uso!');
 });
 
-// Exibir a Elite com o comando !elite
-client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
-  if (message.content === '!elite') {
-    const lista = elite.length
-      ? elite.map((user, i) => `${i + 1}. <@${user.id}>`).join('\n')
-      : '*Nenhum participante na Elite*';
+// Função para gerar a mensagem da Elite
+function getEliteMessage() {
+  const lista = elite.length
+    ? elite.map((user, i) => `${i + 1}. <@${user.id}>`).join('\n')
+    : '*Nenhum participante na Elite*';
 
-    await message.reply({
-      content: `
+  const buttons = [
+    new ButtonBuilder()
+      .setCustomId('participarElite')
+      .setLabel('⭐ Entrar na Elite')
+      .setStyle(ButtonStyle.Primary)
+  ];
+
+  return {
+    content: `
 🔱 **[ ELITE TEAM ]** 🔱
 
 👑 **Responsável:** ${eliteResponsavel}
@@ -47,21 +52,49 @@ client.on('messageCreate', async (message) => {
 ${lista}
 
 ━━━━━━━━━━━━━━━━━━━━━`,
-      components: [
-        new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId('participarElite')
-            .setLabel('⭐ Entrar na Elite')
-            .setStyle(ButtonStyle.Primary)
-        )
-      ]
-    });
+    components: [new ActionRowBuilder().addComponents(buttons)]
+  };
+}
+
+// Função para gerar mensagem com botão de sair (para membros)
+function getEliteMessageForMember(userId) {
+  const lista = elite.length
+    ? elite.map((user, i) => `${i + 1}. <@${user.id}>`).join('\n')
+    : '*Nenhum participante na Elite*';
+
+  const buttons = [
+    new ButtonBuilder()
+      .setCustomId('sairElite')
+      .setLabel('🚪 Sair da Elite')
+      .setStyle(ButtonStyle.Danger)
+  ];
+
+  return {
+    content: `
+🔱 **[ ELITE TEAM ]** 🔱
+
+👑 **Responsável:** ${eliteResponsavel}
+
+📋 **Participantes:**
+${lista}
+
+━━━━━━━━━━━━━━━━━━━━━`,
+    components: [new ActionRowBuilder().addComponents(buttons)]
+  };
+}
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+  if (message.content === '!elite') {
+    const isMember = elite.find(u => u.id === message.author.id);
+    await message.reply(isMember ? getEliteMessageForMember(message.author.id) : getEliteMessage());
   }
 });
 
 // Modal para entrar na Elite
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isButton()) return;
+  
   if (interaction.customId === 'participarElite') {
     const modal = new ModalBuilder()
       .setCustomId('modalElite')
@@ -76,6 +109,35 @@ client.on(Events.InteractionCreate, async (interaction) => {
     modal.addComponents(new ActionRowBuilder().addComponents(senhaInput));
     await interaction.showModal(modal);
   }
+  
+  if (interaction.customId === 'sairElite') {
+    const memberIndex = elite.findIndex(u => u.id === interaction.user.id);
+    if (memberIndex !== -1) {
+      elite.splice(memberIndex, 1);
+      
+      // Responde ao usuário que saiu
+      await interaction.reply({ 
+        content: `👋 **Você saiu da Elite, <@${interaction.user.id}>.**`, 
+        ephemeral: true 
+      });
+
+      // Atualiza a mensagem da Elite
+      const messages = await interaction.channel.messages.fetch({ limit: 10 });
+      const lastEliteMessage = messages.find(m => 
+        m.author.id === client.user.id && 
+        m.content.includes('ELITE TEAM')
+      );
+
+      if (lastEliteMessage) {
+        await lastEliteMessage.edit(getEliteMessage());
+      }
+    } else {
+      await interaction.reply({ 
+        content: '❌ Você não é membro da Elite!', 
+        ephemeral: true 
+      });
+    }
+  }
 });
 
 // Resposta do modal
@@ -89,10 +151,23 @@ client.on(Events.InteractionCreate, async (interaction) => {
           id: interaction.user.id,
           joinedAt: new Date().toLocaleDateString('pt-BR')
         });
+        
+        // Responde ao usuário que entrou
         await interaction.reply({ 
           content: `🌟 **Bem-vindo(a) à Elite, <@${interaction.user.id}>!**\n\nVocê agora faz parte do nosso time exclusivo.`, 
           ephemeral: true 
         });
+
+        // Procura a última mensagem do bot com a lista da Elite e atualiza
+        const messages = await interaction.channel.messages.fetch({ limit: 10 });
+        const lastEliteMessage = messages.find(m => 
+          m.author.id === client.user.id && 
+          m.content.includes('ELITE TEAM')
+        );
+
+        if (lastEliteMessage) {
+          await lastEliteMessage.edit(getEliteMessage());
+        }
       } else {
         await interaction.reply({ 
           content: '❌ Você já é membro da Elite!', 
