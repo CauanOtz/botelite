@@ -139,10 +139,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const messages = await interaction.channel.messages.fetch({ limit: 10 });
       const lastEliteMessage = messages.find(m => 
         m.author.id === client.user.id && 
-        m.content.includes('ELITE TEAM')
+        m.embeds.length > 0 && 
+        m.embeds[0].title === '🔱 ELITE TEAM'
       );
 
       if (lastEliteMessage) {
+        // Atualiza com a mensagem padrão após o usuário sair
         await lastEliteMessage.edit(getEliteMessage());
       }
     } else {
@@ -172,15 +174,17 @@ client.on(Events.InteractionCreate, async (interaction) => {
           ephemeral: true 
         });
 
-        // Procura a última mensagem do bot com a lista da Elite e atualiza
+        // Procura e atualiza a última mensagem da Elite
         const messages = await interaction.channel.messages.fetch({ limit: 10 });
         const lastEliteMessage = messages.find(m => 
           m.author.id === client.user.id && 
-          m.content.includes('ELITE TEAM')
+          m.embeds.length > 0 && 
+          m.embeds[0].title === '🔱 ELITE TEAM'
         );
 
         if (lastEliteMessage) {
-          await lastEliteMessage.edit(getEliteMessage());
+          // Atualiza com a mensagem específica para o novo membro
+          await lastEliteMessage.edit(getEliteMessageForMember(interaction.user.id));
         }
       } else {
         await interaction.reply({ 
