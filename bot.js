@@ -39,11 +39,7 @@ function getEliteMessage() {
     new ButtonBuilder()
       .setCustomId('participarElite')
       .setLabel('✅ Entrar na Elite')
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setCustomId('sairElite')
-      .setLabel('❌ Se Retirar')
-      .setStyle(ButtonStyle.Danger)
+      .setStyle(ButtonStyle.Success)
   ];
 
   return {
@@ -65,7 +61,12 @@ ${lista}
     }],
     components: [
       new ActionRowBuilder().addComponents(buttons[0]),
-      new ActionRowBuilder().addComponents(buttons[1])
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('sairElite')
+          .setLabel('❌ Se Retirar')
+          .setStyle(ButtonStyle.Danger)
+      )
     ]
   };
 }
@@ -184,7 +185,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         );
 
         if (lastEliteMessage) {
-          await lastEliteMessage.edit(getEliteMessageForMember(interaction.user.id));
+          await lastEliteMessage.edit(getEliteMessage());
         }
       } else {
         await interaction.reply({ 
