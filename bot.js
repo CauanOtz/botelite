@@ -8,7 +8,6 @@ const {
     ModalBuilder,
     TextInputBuilder,
     TextInputStyle,
-    InteractionType,
     Events
 } = require('discord.js');
 
