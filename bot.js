@@ -38,20 +38,27 @@ function getEliteMessage() {
   const buttons = [
     new ButtonBuilder()
       .setCustomId('participarElite')
-      .setLabel('⭐ Entrar na Elite')
-      .setStyle(ButtonStyle.Primary)
+      .setLabel('✅ Entrar na Elite')
+      .setStyle(ButtonStyle.Success)
   ];
 
   return {
-    content: `
-🔱 **[ ELITE TEAM ]** 🔱
+    embeds: [{
+      color: 0x0099FF,
+      title: '🔱 ELITE TEAM',
+      description: `
+📅 **Data:** <t:${Math.floor(Date.now() / 1000)}:F>
 
 👑 **Responsável:** ${eliteResponsavel}
 
-📋 **Participantes:**
+👥 **Participantes:**
 ${lista}
 
 ━━━━━━━━━━━━━━━━━━━━━`,
+      footer: {
+        text: 'Use os botões abaixo para entrar ou sair da Elite!'
+      }
+    }],
     components: [new ActionRowBuilder().addComponents(buttons)]
   };
 }
@@ -65,20 +72,27 @@ function getEliteMessageForMember(userId) {
   const buttons = [
     new ButtonBuilder()
       .setCustomId('sairElite')
-      .setLabel('🚪 Sair da Elite')
+      .setLabel('❌ Sair da Elite')
       .setStyle(ButtonStyle.Danger)
   ];
 
   return {
-    content: `
-🔱 **[ ELITE TEAM ]** 🔱
+    embeds: [{
+      color: 0x0099FF,
+      title: '🔱 ELITE TEAM',
+      description: `
+📅 **Data:** <t:${Math.floor(Date.now() / 1000)}:F>
 
 👑 **Responsável:** ${eliteResponsavel}
 
-📋 **Participantes:**
+👥 **Participantes:**
 ${lista}
 
 ━━━━━━━━━━━━━━━━━━━━━`,
+      footer: {
+        text: 'Use os botões abaixo para entrar ou sair da Elite!'
+      }
+    }],
     components: [new ActionRowBuilder().addComponents(buttons)]
   };
 }
